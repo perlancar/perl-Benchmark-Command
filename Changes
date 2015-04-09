@@ -1,5 +1,12 @@
 Revision history for Benchmark-Command
 
+0.02    2015-04-09 (PERLANCAR)
+
+	- Add option: skip_not_found.
+
+	- Change wording in Description.
+
+
 0.01    2015-04-09 (PERLANCAR)
 
         - First release.
