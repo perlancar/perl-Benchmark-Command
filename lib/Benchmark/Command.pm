@@ -68,7 +68,7 @@ sub run {
      perl        => [qw/perl -e1/],
      "bash+true" => [qw/bash -c true/],
      ruby        => [qw/ruby -e1/],
-     python      => [qw/python -c1],
+     python      => [qw/python -c1/],
      nodejs      => [qw/nodejs -e 1/],
  });
 
