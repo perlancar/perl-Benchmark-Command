@@ -25,17 +25,49 @@ sub run {
     for (keys %$cmds) {
         $longest = length if length > $longest;
         my $cmd = $cmds->{$_};
+        if (ref($cmd) eq 'CODE') {
+            # accept coderef as-is
+            $subs->{$_} = $cmd;
+            next COMMAND;
+        }
         ref($cmd) eq 'ARRAY' or croak "cmds->{$_} must be an arrayref";
-        @$cmd or croak "cmds->{$_} must not be empty";
-        unless (which $cmd->[0]) {
+
+        my @cmd = @$cmd;
+        my $per_cmd_opts;
+        if (ref($cmd[0]) eq 'HASH') {
+            $per_cmd_opts = shift @cmd;
+        } else {
+            $per_cmd_opts = {};
+        }
+        $per_cmd_opts->{env} //= {};
+        @cmd or croak "cmds->{$_} must not be empty";
+
+        unless (which $cmd[0]) {
             if ($opts->{skip_not_found}) {
-                warn "cmds->{$_}: $cmd->[0] not found, skipped\n";
+                warn "cmds->{$_}: program '$cmd[0]' not found, skipped\n";
                 next COMMAND;
             } else {
-                croak "cmds->{$_}: $cmd->[0] not found";
+                croak "cmds->{$_}: program '$cmd[0]' not found";
             }
         }
-        $subs->{$_} = sub { system {$cmd->[0]} @$cmd };
+
+        # XXX we haven't counted for overhead of setting/resetting env vars. but
+        # because it should be about 3 orders of magnitude (microsecs instead of
+        # millisecs) we're ignoring it for now.
+
+        $subs->{$_} = sub {
+            my %save_env;
+            for (keys %{ $per_cmd_opts->{env} }) {
+                $save_env{$_} = $ENV{$_};
+                $ENV{$_} = $per_cmd_opts->{env}{$_};
+            }
+
+            system {$cmd[0]} @cmd;
+
+            for (keys %save_env) {
+                $ENV{$_} = $save_env{$_};
+            }
+        };
     }
 
     my $stdout = tee_stdout {
@@ -66,7 +98,7 @@ sub run {
 
  Benchmark::Command::run(100, {
      perl        => [qw/perl -e1/],
-     "bash+true" => [qw/bash -c true/],
+     "bash+true" => [qw/bash --norc -c true/],
      ruby        => [qw/ruby -e1/],
      python      => [qw/python -c1/],
      nodejs      => [qw/nodejs -e 1/],
@@ -110,6 +142,12 @@ arrayrefs (e.g. C<< {perl=>["perl", "-e1"], nodejs=>["nodejs", "-e", 1]} >>)
 into C<%subs> (which is a hash of names and coderefs (e.g.: C<< {perl=>sub
 {system {"perl"} "perl", "-e1"}, nodejs=>sub {system {"nodejs"} "nodejs", "-e",
 1}} >>).
+
+If a value in C<%cmds> is already a coderef, it will be used as-is.
+
+If a value in C<%cmds> is an arrayref, the first element of the arrayref (before
+the program name) can optionally contain a hashref of option. Known per-command
+options: C<env> (hashref to locally set environment variables).
 
 The checks done are: each command must be an arrayref (to be executed without
 invoking shell) and the program (first element of each arrayref) must exist.
