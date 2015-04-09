@@ -1,5 +1,13 @@
 Revision history for Benchmark-Command
 
+0.03    2015-04-09 (PERLANCAR)
+
+        - Allow specifying per-command option (first element of command
+          arrayref). Known per-command options: env.
+
+        - Allow specifying coderef command, which will be used as-is.
+
+
 0.02    2015-04-09 (PERLANCAR)
 
 	- Add option: skip_not_found.
