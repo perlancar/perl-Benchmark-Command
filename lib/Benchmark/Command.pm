@@ -13,18 +13,28 @@ use Capture::Tiny qw(tee_stdout);
 use File::Which;
 
 sub run {
-    my ($count, $cmds) = @_;
+    my ($count, $cmds, $opts) = @_;
+
+    $opts //= {};
 
     ref($cmds) eq 'HASH' or croak "cmds must be a hashref";
 
     my $subs = {};
     my $longest = 0;
+  COMMAND:
     for (keys %$cmds) {
         $longest = length if length > $longest;
         my $cmd = $cmds->{$_};
         ref($cmd) eq 'ARRAY' or croak "cmds->{$_} must be an arrayref";
         @$cmd or croak "cmds->{$_} must not be empty";
-        which($cmd->[0]) or croak "cmds->{$_}: $cmd->[0] not found";
+        unless (which $cmd->[0]) {
+            if ($opts->{skip_not_found}) {
+                warn "cmds->{$_}: $cmd->[0] not found, skipped\n";
+                next COMMAND;
+            } else {
+                croak "cmds->{$_}: $cmd->[0] not found";
+            }
+        }
         $subs->{$_} = sub { system {$cmd->[0]} @$cmd };
     }
 
@@ -33,7 +43,7 @@ sub run {
     };
 
     my $times = {};
-    for (keys %$cmds) {
+    for (keys %$subs) {
         $stdout =~ m/^\Q$_\E\s+(\d+(?:\.\d+)?)/m
             or die "Can't find rate for '$_'";
         $times->{$_} = 1/$1;
@@ -93,7 +103,7 @@ time, like the above example.
 
 =head1 FUNCTIONS
 
-=head2 run($count, \%cmds)
+=head2 run($count, \%cmds[, \%opts])
 
 Do some checks and convert C<%cmds> (which is a hash of names and command
 arrayrefs (e.g. C<< {perl=>["perl", "-e1"], nodejs=>["nodejs", "-e", 1]} >>)
@@ -109,6 +119,17 @@ C<$count> can be set to 0 but for the above example where the commands end in a
 short time (in the order milliseconds), I set to to around 100.
 
 Then also show the average run times for each command.
+
+Known options:
+
+=over
+
+=item * skip_not_found => bool
+
+If set to true, will skip benchmarking commands where the program is not found.
+The default bahavior is to croak.
+
+=back
 
 
 =head2 SEE ALSO
