@@ -83,9 +83,12 @@ Sample output:
 
 This module provides C<run()>, a convenience routine to benchmark commands. This
 module is similar to L<Benchmark::Apps> except: 1) commands will be executed
-without shell (using the C<< system {$_[0]} @_ >> syntax); 2) L<Benchmark::Dumb>
-is used as the backend. This module is suitable for benchmarking commands that
-completes in a short time, like the above example.
+without shell (using the C<< system {$_[0]} @_ >> syntax); 2) the existence of
+each program will be checked first; 3) L<Benchmark::Dumb> is used as the
+backend.
+
+This module is suitable for benchmarking commands that completes in a short
+time, like the above example.
 
 
 =head1 FUNCTIONS
