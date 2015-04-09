@@ -173,5 +173,3 @@ The default bahavior is to croak.
 =head2 SEE ALSO
 
 L<Benchmark::Apps>
-
-1;
