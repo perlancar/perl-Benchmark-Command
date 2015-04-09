@@ -1,6 +1,9 @@
 package Benchmark::Command;
 
-use 5.010;
+# DATE
+# VERSION
+
+use 5.010001;
 use strict;
 use warnings;
 use Carp;
@@ -44,6 +47,7 @@ sub run {
     }
 };
 
+1;
 #ABSTRACT: Benchmark commands
 
 =head1 SYNOPSIS
@@ -97,7 +101,9 @@ into C<%subs> (which is a hash of names and coderefs (e.g.: C<< {perl=>sub
 The checks done are: each command must be an arrayref (to be executed without
 invoking shell) and the program (first element of each arrayref) must exist.
 
-Then run L<Benchmark::Dumb>'s C<< cmpthese($count, \%subs) >>.
+Then run L<Benchmark::Dumb>'s C<< cmpthese($count, \%subs) >>. Usually,
+C<$count> can be set to 0 but for the above example where the commands end in a
+short time (in the order milliseconds), I set to to around 100.
 
 Then also show the average run times for each command.
 
