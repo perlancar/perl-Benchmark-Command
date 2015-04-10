@@ -1,5 +1,11 @@
 Revision history for Benchmark-Command
 
+0.04    2015-04-10 (PERLANCAR)
+
+	- Add option: debug; by default strip programs' output unless in
+	  debug mode.
+
+
 0.03    2015-04-09 (PERLANCAR)
 
         - Allow specifying per-command option (first element of command
