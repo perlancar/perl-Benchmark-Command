@@ -9,13 +9,14 @@ use warnings;
 use Carp;
 
 use Benchmark::Dumb qw(cmpthese);
-use Capture::Tiny qw(tee_stdout);
+use Capture::Tiny qw(capture_merged);
 use File::Which;
 
 sub run {
     my ($count, $cmds, $opts) = @_;
 
     $opts //= {};
+    $opts->{debug} //= $ENV{DEBUG} // 0;
 
     ref($cmds) eq 'HASH' or croak "cmds must be a hashref";
 
@@ -70,13 +71,24 @@ sub run {
         };
     }
 
-    my $stdout = tee_stdout {
+    my $output = capture_merged {
         cmpthese($count, $subs);
     };
 
+    # strip program's output
+    $output =~ /(.*)^(\s+Rate\s+.+)/ms
+        or die "Can't detect cmpthese() output, full output: $output";
+
+    my $cmpoutput = $2;
+    unless ($opts->{debug}) {
+        $output = $cmpoutput;
+    }
+
+    print $output;
+
     my $times = {};
     for (keys %$subs) {
-        $stdout =~ m/^\Q$_\E\s+(\d+(?:\.\d+)?)/m
+        $cmpoutput =~ m/^\Q$_\E\s+(\d+(?:\.\d+)?)/m
             or die "Can't find rate for '$_'";
         $times->{$_} = 1/$1;
     }
@@ -162,12 +174,23 @@ Known options:
 
 =over
 
+=item * debug => bool (default: from env DEBUG or 0)
+
+If true, won't strip program's output.
+
 =item * skip_not_found => bool
 
 If set to true, will skip benchmarking commands where the program is not found.
 The default bahavior is to croak.
 
 =back
+
+
+=head1 ENVIRONMENT
+
+=head2 DEBUG => bool
+
+Set default for C<run()>'s C<debug> option.
 
 
 =head2 SEE ALSO
