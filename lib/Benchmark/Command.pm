@@ -83,7 +83,7 @@ sub run {
     };
 
     # strip program's output
-    $output =~ /(.*)( +Rate\s+.+)/ms
+    $output =~ /(.*(?:^|\S))( +Rate\s+.+)/ms
         or die "Can't detect cmpthese() output, full output: $output";
 
     my $cmpoutput = $2;
