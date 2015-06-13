@@ -1,5 +1,11 @@
 Revision history for Benchmark-Command
 
+0.06    2015-06-13 (PERLANCAR)
+
+	- Introduce BENCHMARK_COMMAND_QUIET &
+	  BENCHMARK_COMMAND_SKIP_NOT_FOUND envs.
+
+
 0.05    2015-06-13 (PERLANCAR)
 
 	[INCOMPATIBLE CHANGES]
