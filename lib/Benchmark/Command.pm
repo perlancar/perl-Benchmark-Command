@@ -6,7 +6,6 @@ package Benchmark::Command;
 use 5.010001;
 use strict;
 use warnings;
-use Carp;
 
 use Benchmark::Dumb qw(cmpthese);
 use Capture::Tiny qw(capture_merged);
@@ -16,24 +15,26 @@ sub run {
     my ($count, $cmds, $opts) = @_;
 
     $opts //= {};
-    $opts->{debug} //= $ENV{DEBUG} // 0;
+    $opts->{quiet} //= $ENV{QUIET} // 0;
+    $opts->{ignore_exit_code} //= $ENV{BENCHMARK_COMMAND_IGNORE_EXIT_CODE} // 0;
 
-    ref($cmds) eq 'HASH' or croak "cmds must be a hashref";
+    ref($cmds) eq 'HASH' or die "cmds must be a hashref";
 
     my $subs = {};
     my $longest = 0;
   COMMAND:
-    for (keys %$cmds) {
-        $longest = length if length > $longest;
-        my $cmd = $cmds->{$_};
-        if (ref($cmd) eq 'CODE') {
+    for my $cmd_name (keys %$cmds) {
+        $longest = length($cmd_name) if length($cmd_name) > $longest;
+        my $cmd_spec = $cmds->{$cmd_name};
+        if (ref($cmd_spec) eq 'CODE') {
             # accept coderef as-is
-            $subs->{$_} = $cmd;
+            $subs->{$cmd_name} = $cmd_spec;
             next COMMAND;
         }
-        ref($cmd) eq 'ARRAY' or croak "cmds->{$_} must be an arrayref";
+        ref($cmd_spec) eq 'ARRAY'
+            or die "cmds->{$cmd_name} must be an arrayref";
 
-        my @cmd = @$cmd;
+        my @cmd = @$cmd_spec;
         my $per_cmd_opts;
         if (ref($cmd[0]) eq 'HASH') {
             $per_cmd_opts = shift @cmd;
@@ -41,14 +42,15 @@ sub run {
             $per_cmd_opts = {};
         }
         $per_cmd_opts->{env} //= {};
-        @cmd or croak "cmds->{$_} must not be empty";
+        @cmd or die "cmds->{$cmd_name} must not be empty";
 
         unless (which $cmd[0]) {
             if ($opts->{skip_not_found}) {
-                warn "cmds->{$_}: program '$cmd[0]' not found, skipped\n";
+                warn "cmds->{$cmd_name}: program '$cmd[0]' not found, ".
+                    "skipped\n";
                 next COMMAND;
             } else {
-                croak "cmds->{$_}: program '$cmd[0]' not found";
+                die "cmds->{$cmd_name}: program '$cmd[0]' not found";
             }
         }
 
@@ -56,17 +58,20 @@ sub run {
         # because it should be about 3 orders of magnitude (microsecs instead of
         # millisecs) we're ignoring it for now.
 
-        $subs->{$_} = sub {
+        $subs->{$cmd_name} = sub {
             my %save_env;
-            for (keys %{ $per_cmd_opts->{env} }) {
-                $save_env{$_} = $ENV{$_};
-                $ENV{$_} = $per_cmd_opts->{env}{$_};
+            for my $var (keys %{ $per_cmd_opts->{env} }) {
+                $save_env{$var} = $ENV{$var};
+                $ENV{$var} = $per_cmd_opts->{env}{$var};
             }
 
             system {$cmd[0]} @cmd;
 
-            for (keys %save_env) {
-                $ENV{$_} = $save_env{$_};
+            die "Non-zero exit code ($?) for $cmd_name"
+                if !$opts->{ignore_exit_code} && $?;
+
+            for my $var (keys %save_env) {
+                $ENV{$var} = $save_env{$var};
             }
         };
     }
@@ -76,11 +81,11 @@ sub run {
     };
 
     # strip program's output
-    $output =~ /(.*)^(\s+Rate\s+.+)/ms
+    $output =~ /(.*)( +Rate\s+.+)/ms
         or die "Can't detect cmpthese() output, full output: $output";
 
     my $cmpoutput = $2;
-    unless ($opts->{debug}) {
+    if ($opts->{quiet}) {
         $output = $cmpoutput;
     }
 
@@ -174,23 +179,31 @@ Known options:
 
 =over
 
-=item * debug => bool (default: from env DEBUG or 0)
+=item * quiet => bool (default: from env QUIET or 0)
 
-If true, won't strip program's output.
+If set to true, will hide program's output.
+
+=item * ignore_exit_code => bool (default: from env BENCHMARK_COMMAND_IGNORE_EXIT_CODE or 0)
+
+If set to true, will not die if exit code is non-zero.
 
 =item * skip_not_found => bool
 
 If set to true, will skip benchmarking commands where the program is not found.
-The default bahavior is to croak.
+The default bahavior is to die.
 
 =back
 
 
 =head1 ENVIRONMENT
 
-=head2 DEBUG => bool
+=head2 BENCHMARK_COMMAND_IGNORE_EXIT_CODE => bool
 
-Set default for C<run()>'s C<debug> option.
+Set default for C<run()>'s C<ignore_exit_code> option.
+
+=head2 QUIET => bool
+
+Set default for C<run()>'s C<quiet> option.
 
 
 =head2 SEE ALSO
