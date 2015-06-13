@@ -45,7 +45,7 @@ sub run {
         @cmd or die "cmds->{$cmd_name} must not be empty";
 
         unless (which $cmd[0]) {
-            if ($opts->{skip_not_found}) {
+            if ($per_cmd_opts->{skip_not_found} // $opts->{skip_not_found}) {
                 warn "cmds->{$cmd_name}: program '$cmd[0]' not found, ".
                     "skipped\n";
                 next COMMAND;
@@ -68,7 +68,8 @@ sub run {
             system {$cmd[0]} @cmd;
 
             die "Non-zero exit code ($?) for $cmd_name"
-                if !$opts->{ignore_exit_code} && $?;
+                if !($per_cmd_opts->{ignore_exit_code} //
+                     $opts->{ignore_exit_code}) && $?;
 
             for my $var (keys %save_env) {
                 $ENV{$var} = $save_env{$var};
@@ -114,7 +115,7 @@ sub run {
  use Benchmark::Command;
 
  Benchmark::Command::run(100, {
-     perl        => [qw/perl -e1/],
+     perl        => [{env=>{PERL_UNICODE=>''}}, qw/perl -e1/],
      "bash+true" => [qw/bash --norc -c true/],
      ruby        => [qw/ruby -e1/],
      python      => [qw/python -c1/],
@@ -163,8 +164,8 @@ into C<%subs> (which is a hash of names and coderefs (e.g.: C<< {perl=>sub
 If a value in C<%cmds> is already a coderef, it will be used as-is.
 
 If a value in C<%cmds> is an arrayref, the first element of the arrayref (before
-the program name) can optionally contain a hashref of option. Known per-command
-options: C<env> (hashref to locally set environment variables).
+the program name) can optionally contain a hashref of option. See per-command
+option below..
 
 The checks done are: each command must be an arrayref (to be executed without
 invoking shell) and the program (first element of each arrayref) must exist.
@@ -187,10 +188,28 @@ If set to true, will hide program's output.
 
 If set to true, will not die if exit code is non-zero.
 
-=item * skip_not_found => bool
+=item * skip_not_found => bool (default: 0)
 
 If set to true, will skip benchmarking commands where the program is not found.
 The default bahavior is to die.
+
+=back
+
+Known per-command options:
+
+=over
+
+=item * env => hash
+
+Locally set environment variables for the command.
+
+=item * ignore_exit_code => bool
+
+This overrides global C<ignore_exit_code> option.
+
+=item * skip_not_found => bool
+
+This overrides global C<skip_not_found> option.
 
 =back
 
