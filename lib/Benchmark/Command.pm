@@ -15,8 +15,9 @@ sub run {
     my ($count, $cmds, $opts) = @_;
 
     $opts //= {};
-    $opts->{quiet} //= $ENV{QUIET} // 0;
+    $opts->{quiet} //= $ENV{BENCHMARK_COMMAND_QUIET} // $ENV{QUIET} // 0;
     $opts->{ignore_exit_code} //= $ENV{BENCHMARK_COMMAND_IGNORE_EXIT_CODE} // 0;
+    $opts->{skip_not_found} //= $ENV{BENCHMARK_COMMAND_SKIP_NOT_FOUND} // 0;
 
     ref($cmds) eq 'HASH' or die "cmds must be a hashref";
 
@@ -220,9 +221,18 @@ This overrides global C<skip_not_found> option.
 
 Set default for C<run()>'s C<ignore_exit_code> option.
 
+=head2 BENCHMARK_COMMAND_QUIET => bool
+
+Set default for C<run()>'s C<quiet> option (takes precedence of C<QUIET>).
+
+=head2 BENCHMARK_COMMAND_SKIP_NOT_FOUND => bool
+
+Set default for C<run()>'s C<skip_not_found> option.
+
 =head2 QUIET => bool
 
-Set default for C<run()>'s C<quiet> option.
+Set default for C<run()>'s C<quiet> option (if C<BENCHMARK_COMMAND_QUIET> is not
+defined).
 
 
 =head2 SEE ALSO
