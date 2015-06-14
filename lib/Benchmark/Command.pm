@@ -14,6 +14,8 @@ use File::Which;
 sub run {
     my ($count, $cmds, $opts) = @_;
 
+    $count //= $ENV{BENCHMARK_COMMAND_COUNT} // 0;
+
     $opts //= {};
     $opts->{quiet} //= $ENV{BENCHMARK_COMMAND_QUIET} // $ENV{QUIET} // 0;
     $opts->{ignore_exit_code} //= $ENV{BENCHMARK_COMMAND_IGNORE_EXIT_CODE} // 0;
@@ -216,6 +218,10 @@ This overrides global C<skip_not_found> option.
 
 
 =head1 ENVIRONMENT
+
+=head2 BENCHMARK_COMMAND_COUNT => num
+
+Set default for C<run()>'s C<$count> argument.
 
 =head2 BENCHMARK_COMMAND_IGNORE_EXIT_CODE => bool
 
