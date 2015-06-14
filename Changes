@@ -1,5 +1,10 @@
 Revision history for Benchmark-Command
 
+0.08    2015-06-14 (PERLANCAR)
+
+	- Introduce BENCHMARK_COMMAND_COUNT env.
+
+
 0.07    2015-06-13 (PERLANCAR)
 
 	- Tweak/fix regex to strip program's output.
