@@ -1,5 +1,3 @@
-Revision history for Benchmark-Command
-
 0.08    2015-06-14 (PERLANCAR)
 
 	- Introduce BENCHMARK_COMMAND_COUNT env.
