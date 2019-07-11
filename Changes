@@ -1,20 +1,20 @@
-0.08    2015-06-14 (PERLANCAR)
+0.08    2015-06-14  Released-By: PERLANCAR
 
 	- Introduce BENCHMARK_COMMAND_COUNT env.
 
 
-0.07    2015-06-13 (PERLANCAR)
+0.07    2015-06-13  Released-By: PERLANCAR
 
 	- Tweak/fix regex to strip program's output.
 
 
-0.06    2015-06-13 (PERLANCAR)
+0.06    2015-06-13  Released-By: PERLANCAR
 
 	- Introduce BENCHMARK_COMMAND_QUIET &
 	  BENCHMARK_COMMAND_SKIP_NOT_FOUND envs.
 
 
-0.05    2015-06-13 (PERLANCAR)
+0.05    2015-06-13  Released-By: PERLANCAR
 
 	[INCOMPATIBLE CHANGES]
 
@@ -36,13 +36,13 @@
         - Tweak examples and other minor fixes.
 
 
-0.04    2015-04-10 (PERLANCAR)
+0.04    2015-04-10  Released-By: PERLANCAR
 
 	- Add option: debug; by default strip programs' output unless in
 	  debug mode.
 
 
-0.03    2015-04-09 (PERLANCAR)
+0.03    2015-04-09  Released-By: PERLANCAR
 
         - Allow specifying per-command option (first element of command
           arrayref). Known per-command options: env.
@@ -50,13 +50,13 @@
         - Allow specifying coderef command, which will be used as-is.
 
 
-0.02    2015-04-09 (PERLANCAR)
+0.02    2015-04-09  Released-By: PERLANCAR
 
 	- Add option: skip_not_found.
 
 	- Change wording in Description.
 
 
-0.01    2015-04-09 (PERLANCAR)
+0.01    2015-04-09  Released-By: PERLANCAR
 
         - First release.
