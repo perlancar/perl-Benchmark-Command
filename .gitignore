@@ -2,3 +2,4 @@ Benchmark-Command-*
 .build
 *~
 nytprof*
+.DS_Store
